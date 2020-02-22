@@ -149,7 +149,8 @@ public class Crawler extends WebCrawler{
     public boolean shouldVisit(Page page, WebURL url) {
         crawlTime = System.currentTimeMillis();
         String urlString = url.getURL().toLowerCase();
-        return urlString.startsWith("https://sikaman.dyndns.org");
+        return urlString.startsWith("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/") ||
+        		urlString.startsWith("https://sikaman.dyndns.org/courses/4601/");
     }
 
     public void parseTika(Page page , Document document, Metadata metadata) throws TikaException, SAXException, IOException, ParseException {

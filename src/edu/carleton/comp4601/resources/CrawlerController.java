@@ -60,7 +60,7 @@ public class CrawlerController extends CrawlController{
         config.setCrawlStorageFolder(crawlStorage.getAbsolutePath());
         config.setIncludeBinaryContentInCrawling(true);
         config.setPolitenessDelay(10);
-        config.setMaxDepthOfCrawling(1);
+        //config.setMaxDepthOfCrawling(1);
         //config.setMaxPagesToFetch(30);
 
         int numCrawlers = 10;
@@ -69,9 +69,9 @@ public class CrawlerController extends CrawlController{
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
         RobotstxtServer robotstxtServer= new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
-        controller.addSeed("https://www.bbc.com/sport/boxing/51497816");
+        //controller.addSeed("https://www.bbc.com/sport/boxing/51497816");
         //controller.addSeed("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/handouts/");
-        //controller.addSeed("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/assignments/assignment1-2020.html");
+        controller.addSeed("https://sikaman.dyndns.org/courses/4601/resources/N-0.html");
 
         //CrawlController.WebCrawlerFactory<Crawler> factory = Crawler::new;
         // create graph here
@@ -86,10 +86,10 @@ public class CrawlerController extends CrawlController{
         Directory luceneDirectiory = new RAMDirectory();
 
         //TODO: these just erase the mongo collections
-//        BasicDBObject document = new BasicDBObject();
-//        coll.deleteMany(document);
-//        graphColl.deleteMany(document);
-//        tikaColl.deleteMany(document);
+        BasicDBObject document = new BasicDBObject();
+        coll.deleteMany(document);
+        graphColl.deleteMany(document);
+        tikaColl.deleteMany(document);
 
         CrawlController.WebCrawlerFactory<Crawler> factory = () -> new Crawler(graph, coll, luceneDirectiory/*tikaColl*/);
         controller.start(factory, numCrawlers);
