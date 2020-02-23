@@ -12,6 +12,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.DeleteResult;
 
 import edu.carleton.comp4601.dao.DocumentCollection;
@@ -33,6 +34,18 @@ public class DocumentsMongoDb {
 	}
 	
 	public ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> getDocuments() {
+		
+		if(coll.count()==0) {
+			BasicDBObject document = new BasicDBObject();
+	    	coll.deleteMany(document);
+			try {
+				coll = CrawlerController.startCrawl(coll);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		FindIterable<Document> cursor = coll.find();
 		ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> map = new ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document>();
 		MongoCursor<Document> c = cursor.iterator();
@@ -78,16 +91,18 @@ public class DocumentsMongoDb {
 	}
 	
 	public static DocumentsMongoDb getInstance() {
-		if (instance == null) {
+		//if (coll.count()==0) {
 			try {
-				if(coll.count()==0)
-				CrawlerController.startCrawl(coll);
+				//if(coll.count()==0)
+//				BasicDBObject document = new BasicDBObject();
+//		    	coll.deleteMany(document);
+//				CrawlerController.startCrawl(coll);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			instance = new DocumentsMongoDb();
-		}
+		//}
 		return instance;
 	}
 	
@@ -131,6 +146,30 @@ public class DocumentsMongoDb {
 			}
 		}
 		return map;
+    }
+	
+	static void boost() {
+		FindIterable<Document> cursor = coll.find();
+		ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document> map = new ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document>();
+		MongoCursor<Document> c = cursor.iterator();
+		while (c.hasNext()) {
+			Document object = c.next();
+			String score = object.getString("score");
+			float newScore = Float.parseFloat(score) + Float.parseFloat(score) ;
+			coll.updateOne(Filters.eq("id", object.getString("id")), new Document("$set", new Document("score", Float.toString(newScore))));
+		}
+    }
+	
+	static void noBoost() {
+		FindIterable<Document> cursor = coll.find();
+		ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document> map = new ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document>();
+		MongoCursor<Document> c = cursor.iterator();
+		while (c.hasNext()) {
+			Document object = c.next();
+			String score = object.getString("score");
+			float newScore = Float.parseFloat(score) + 1 ;
+			coll.updateOne(Filters.eq("id", object.getString("id")), new Document("$set", new Document("score", Float.toString(newScore))));
+		}
     }
 	
 }

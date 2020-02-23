@@ -118,6 +118,38 @@ public class SearchableDocumentArchive {
 	public DocumentCollection getDocuments() {
 		return documents;
 	}
+    
+    @GET
+	@Path("boost")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String doBoost() {
+    	documentsMongoDb.boost();
+    	ArrayList<edu.carleton.comp4601.dao.Document> documentsList = new ArrayList<edu.carleton.comp4601.dao.Document>();
+        ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> documentMap = documentsMongoDb.getDocuments();
+		for (edu.carleton.comp4601.dao.Document e : documentMap.values()) {
+		    documentsList.add(e);
+		}
+		if(documentMap!=null) {
+			documents.setDocuments(documentsList);
+		}
+		return "boost completed";
+	}
+    
+    @GET
+	@Path("noboost")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String doNoBoost() {
+    	documentsMongoDb.noBoost();
+    	ArrayList<edu.carleton.comp4601.dao.Document> documentsList = new ArrayList<edu.carleton.comp4601.dao.Document>();
+        ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> documentMap = documentsMongoDb.getDocuments();
+		for (edu.carleton.comp4601.dao.Document e : documentMap.values()) {
+		    documentsList.add(e);
+		}
+		if(documentMap!=null) {
+			documents.setDocuments(documentsList);
+		}
+		return "noboost completed";
+	}
 
     //Get a specific document
     //HTML representation
@@ -170,9 +202,23 @@ public class SearchableDocumentArchive {
     public String reset() {
     	BasicDBObject document = new BasicDBObject();
     	documentsMongoDb.coll.deleteMany(document);
+    	documents.setDocuments(null);
+    	documentsMongoDb = null;
     	return "successful reset";
     	
     }
+    
+    @GET
+	@Path("pagerank")
+	@Produces(MediaType.TEXT_HTML)
+	public String getPageranks() {
+    	String htmlString = "<table style=\"border: 1px solid black;\">";
+    	for(Document doc: documents.getDocuments()) {
+    		htmlString += "<tr><td style=\"border: 1px solid black;\">" + doc.getUrl() + "</td><td style=\"border: 1px solid black;\">" + doc.getScore().toString() + "</td></tr>";
+    	}
+    	htmlString += "</table>";
+    	return htmlString;
+	}
 
     /*
     TODO

@@ -95,6 +95,7 @@ public class Crawler extends WebCrawler{
             doc.append("title", document.select("title").toString());
             doc.append("text", text.toString());
             doc.append("crawlTime", new Long(crawlTime).toString());
+            //doc.append("score", "0"); //default score to fix error
         }
         Metadata metadata = new Metadata();
         try {
@@ -111,7 +112,7 @@ public class Crawler extends WebCrawler{
         }
 
         try {
-            memoryIndex = new RAMDirectory();
+            //emoryIndex = new RAMDirectory();
             StandardAnalyzer analyzer = new StandardAnalyzer();
             IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
             IndexWriter indexWriter = new IndexWriter(memoryIndex, indexWriterConfig);
@@ -135,7 +136,7 @@ public class Crawler extends WebCrawler{
 
             //Term term = new Term("DocID", "1");
             //Query query = new TermQuery(term);
-            List<org.apache.lucene.document.Document> results = searchIndex("DocID", doc.get("id").toString(), doc);
+            List<org.apache.lucene.document.Document> results = searchIndex("DocID", doc.get("id").toString(), memoryIndex);
 
             System.out.print("");
         } catch (IOException | org.apache.lucene.queryparser.classic.ParseException e) {
@@ -184,7 +185,7 @@ public class Crawler extends WebCrawler{
 //        System.out.println("title:"+metadata.get(DublinCore.TITLE));
 
     }
-    public List<org.apache.lucene.document.Document> searchIndex(String inField, String queryString, Document doc) throws org.apache.lucene.queryparser.classic.ParseException, IOException {
+    public List<org.apache.lucene.document.Document> searchIndex(String inField, String queryString, Directory memoryIndex) throws org.apache.lucene.queryparser.classic.ParseException, IOException {
         Query query = new QueryParser(inField, new StandardAnalyzer())
                 .parse(queryString);
         IndexReader indexReader = DirectoryReader.open(memoryIndex);
@@ -194,7 +195,7 @@ public class Crawler extends WebCrawler{
         for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
             documents.add(searcher.doc(scoreDoc.doc));
         }
-        doc.append("score", Float.toString(topDocs.scoreDocs[0].score));
+        //doc.append("score", Float.toString(topDocs.scoreDocs[0].score));
         return documents;
     }
 

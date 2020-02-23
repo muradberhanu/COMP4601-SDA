@@ -146,5 +146,20 @@
 			<artifactId>lucene-queries</artifactId>
 			<version>8.4.1</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-analyzers -->
+<dependency>
+    <groupId>org.apache.lucene</groupId>
+    <artifactId>lucene-analyzers</artifactId>
+    <version>3.6.2</version>
+</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-backward-codecs -->
+<dependency>
+    <groupId>org.apache.lucene</groupId>
+    <artifactId>lucene-backward-codecs</artifactId>
+    <version>8.4.1</version>
+</dependency>
+
+		
 	</dependencies>
 </project>
