@@ -78,6 +78,33 @@ public class SearchableDocumentArchive {
 
     @GET
 	@Path("documents")
+	@Produces(MediaType.TEXT_HTML)
+	public String getDocumentsHTML() {
+		List<Document> lod = new ArrayList<Document>();
+		lod.addAll(documentsMongoDb.getDocuments().values());
+		String htmlString = "";
+		for(Document doc: lod) {
+			htmlString += "URL: "+doc.getUrl()
+	    			+"<br> Name: "+doc.getName()
+	    			+"<br> ID: "+doc.getId()
+	    			+"<br> Score: "+doc.getScore()
+	    			+"<br> Content: "+doc.getContent();
+	    	if(!documentsMongoDb.getMongoDocument(doc.getId()).getString("links").isEmpty()) {
+	    		htmlString+="<br> links: "+documentsMongoDb.getMongoDocument(doc.getId()).getString("links");
+	    	}
+	    	if(!documentsMongoDb.getMongoDocument(doc.getId()).getString("images").isEmpty()) {
+	    		htmlString+="<br> images: "+documentsMongoDb.getMongoDocument(doc.getId()).getString("images");
+	    	}
+	    	if(!documentsMongoDb.getMongoDocument(doc.getId()).get("metadata").toString().equals("")) {
+	    		htmlString+="<br> metadata: "+documentsMongoDb.getMongoDocument(doc.getId()).get("metadata").toString();
+	    	}
+	    	htmlString+= "<br><br><br><hr>";
+		}
+		return htmlString;
+	}
+    
+    @GET
+	@Path("documents")
 	@Produces(MediaType.TEXT_XML)
 	public List<Document> getDocuments() {
 		List<Document> lod = new ArrayList<Document>();
@@ -99,6 +126,12 @@ public class SearchableDocumentArchive {
     			+"<br> Content: "+action.getDocument().getContent();
     	if(!documentsMongoDb.getMongoDocument(Integer.parseInt(id)).getString("links").isEmpty()) {
     		documentHTML+="<br> links: "+documentsMongoDb.getMongoDocument(Integer.parseInt(id)).getString("links");
+    	}
+    	if(!documentsMongoDb.getMongoDocument(Integer.parseInt(id)).getString("images").isEmpty()) {
+    		documentHTML+="<br> images: "+documentsMongoDb.getMongoDocument(Integer.parseInt(id)).getString("images");
+    	}
+    	if(!documentsMongoDb.getMongoDocument(Integer.parseInt(id)).get("metadata").toString().equals("")) {
+    		documentHTML+="<br> metadata: "+documentsMongoDb.getMongoDocument(Integer.parseInt(id)).get("metadata").toString();
     	}
     	CrawlerController.getAllDocuments(documentsMongoDb.coll);
         return documentHTML;
