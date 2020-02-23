@@ -1,5 +1,6 @@
 package edu.carleton.comp4601.resources;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,6 +14,8 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.DeleteResult;
 
+import edu.carleton.comp4601.dao.DocumentCollection;
+
 
 public class DocumentsMongoDb {
 
@@ -21,6 +24,7 @@ public class DocumentsMongoDb {
 	static MongoDatabase db = mongoClient.getDatabase("crawler");
 	public static MongoCollection<Document> coll = db.getCollection("crawledSites");
 	static DocumentsMongoDb instance;
+	static DocumentCollection documents;
 	
 	public DocumentsMongoDb() {
 		MongoClient mongoClient = new MongoClient("localhost", 27017);

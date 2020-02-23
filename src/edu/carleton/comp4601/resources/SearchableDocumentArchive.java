@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Path("/sda")
@@ -26,13 +27,21 @@ public class SearchableDocumentArchive {
     @Context
     Request request;
 
-    private DocumentCollection documents; //placeholder, will change after merge to get from crawled storage
+    private DocumentCollection documents = new DocumentCollection(); //placeholder, will change after merge to get from crawled storage
     private String name;
     public static DocumentsMongoDb documentsMongoDb;
 
     public SearchableDocumentArchive(){
         name = "COMP4601 Searchable Document Archive: Murad Berhanu and Mustapha Attah";
         documentsMongoDb = DocumentsMongoDb.getInstance();
+        ArrayList<edu.carleton.comp4601.dao.Document> documentsList = new ArrayList<edu.carleton.comp4601.dao.Document>();
+        ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> documentMap = documentsMongoDb.getDocuments();
+		for (edu.carleton.comp4601.dao.Document e : documentMap.values()) {
+		    documentsList.add(e);
+		}
+		if(documentMap!=null) {
+			documents.setDocuments(documentsList);
+		}
         //documentsMongoDb.coll.db.
     }
 
@@ -83,7 +92,7 @@ public class SearchableDocumentArchive {
 		List<Document> lod = new ArrayList<Document>();
 		lod.addAll(documentsMongoDb.getDocuments().values());
 		String htmlString = "";
-		for(Document doc: lod) {
+		for(Document doc: documents.getDocuments()) {
 			htmlString += "URL: "+doc.getUrl()
 	    			+"<br> Name: "+doc.getName()
 	    			+"<br> ID: "+doc.getId()
@@ -106,10 +115,8 @@ public class SearchableDocumentArchive {
     @GET
 	@Path("documents")
 	@Produces(MediaType.TEXT_XML)
-	public List<Document> getDocuments() {
-		List<Document> lod = new ArrayList<Document>();
-		lod.addAll(documentsMongoDb.getDocuments().values());
-		return lod;
+	public DocumentCollection getDocuments() {
+		return documents;
 	}
 
     //Get a specific document
