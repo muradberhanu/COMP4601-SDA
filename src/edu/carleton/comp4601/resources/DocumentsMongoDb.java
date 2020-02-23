@@ -63,6 +63,16 @@ public class DocumentsMongoDb {
 			return null;
 	}
 	
+	public Document getMongoDocument(int id) {
+		FindIterable<Document> cursor = coll.find(new BasicDBObject(ID, Integer.toString(id)));
+		MongoCursor<Document> c = cursor.iterator();
+		if (c.hasNext()) {
+			Document object = c.next();
+			return object;
+		} else
+			return null;
+	}
+	
 	public static DocumentsMongoDb getInstance() {
 		if (instance == null) {
 			try {
@@ -77,7 +87,7 @@ public class DocumentsMongoDb {
 		return instance;
 	}
 	
-	public boolean close(int id) {
+	public boolean deleteDocument(String id) {
 		DeleteResult result = coll.deleteOne(new BasicDBObject(ID, id));
 		return result != null;
 	}

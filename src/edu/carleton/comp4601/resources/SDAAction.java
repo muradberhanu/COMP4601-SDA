@@ -48,6 +48,12 @@ public class SDAAction {
         //throw new RuntimeException("Document not found");
     }
     
+    @DELETE
+	public void deleteDocument() {
+		if (!documentsMongoDb.deleteDocument(Integer.toString(id)))
+			throw new RuntimeException("Account " + id + " not found");
+	}
+    
     @GET
     @Produces(MediaType.TEXT_XML)
     public Document getAllDocuments(){

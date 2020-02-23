@@ -96,8 +96,8 @@ public class CrawlerController extends CrawlController{
         Directory luceneDirectiory = new RAMDirectory();
 
         //TODO: these just erase the mongo collections
-        BasicDBObject document = new BasicDBObject();
-        coll.deleteMany(document);
+        //BasicDBObject document = new BasicDBObject();
+       // coll.deleteMany(document);
         //graphColl.deleteMany(document);
 //        tikaColl.deleteMany(document);
 

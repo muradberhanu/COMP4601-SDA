@@ -10,6 +10,9 @@ import edu.carleton.comp4601.utility.SearchServiceManager;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import com.mongodb.BasicDBObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,13 +87,22 @@ public class SearchableDocumentArchive {
 
     //Get a specific document
     //HTML representation
-//    @GET
-//    @Path("{id}")
-//    @Produces(MediaType.TEXT_HTML)
-//    public Document getDocumentHTML(@PathParam("id") String id){
-//    	SDAAction action = new SDAAction(uriInfo, request, id, documentsMongoDb);
-//        return action.getDocumentHtml();
-//    }
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.TEXT_HTML)
+    public String getDocumentHTML(@PathParam("id") String id){
+    	SDAAction action = new SDAAction(uriInfo, request, id, documentsMongoDb);
+    	String documentHTML = "URL: "+action.getDocument().getUrl()
+    			+"<br> Name: "+action.getDocument().getName()
+    			+"<br> ID: "+action.getDocument().getId()
+    			+"<br> Score: "+action.getDocument().getScore()
+    			+"<br> Content: "+action.getDocument().getContent();
+    	if(!documentsMongoDb.getMongoDocument(Integer.parseInt(id)).getString("links").isEmpty()) {
+    		documentHTML+="<br> links: "+documentsMongoDb.getMongoDocument(Integer.parseInt(id)).getString("links");
+    	}
+    	CrawlerController.getAllDocuments(documentsMongoDb.coll);
+        return documentHTML;
+    }
 
     //XML representation
     @GET
@@ -103,13 +115,24 @@ public class SearchableDocumentArchive {
 
 //    @DELETE
 //    @Path("{id}")
-//    public Response deleteDocument (@PathParam("id") int id){
+//    public Response deleteDocument (@PathParam("id") String id){
+//    	SDAAction action = new SDAAction(uriInfo, request, id, documentsMongoDb);
+//        return action.deleteDocument();
 //        if (!(documents.getDocuments().get(id) == null)){  // delete condition to be changed after merge
 //            return Response.status(200, "DELETE SUCCESSFUL").build();
 //        }
 //        return Response.status(404, "DOCUMENT NOT FOUND").build();
 //    }
 
+    @GET
+    @Path("reset")
+    @Produces(MediaType.TEXT_HTML)
+    public String reset() {
+    	BasicDBObject document = new BasicDBObject();
+    	documentsMongoDb.coll.deleteMany(document);
+    	return "successful reset";
+    	
+    }
 
     /*
     TODO
