@@ -95,8 +95,9 @@ public class SearchableDocumentArchive {
     @GET
     @Path("{id}")
     @Produces(MediaType.TEXT_XML)
-    public SDAAction getDocumentXML(@PathParam("id") String id){
-        return new SDAAction(uriInfo, request, id, documentsMongoDb);
+    public Document getDocumentXML(@PathParam("id") String id){
+    	SDAAction action = new SDAAction(uriInfo, request, id, documentsMongoDb);
+        return action.getDocument();
     }
 
 //    @DELETE

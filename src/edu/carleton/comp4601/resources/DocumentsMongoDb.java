@@ -47,19 +47,18 @@ public class DocumentsMongoDb {
 		return map;
 	}
 	
-	public String find(int id) {
+	public edu.carleton.comp4601.dao.Document find(int id) {
 		FindIterable<Document> cursor = coll.find(new BasicDBObject(ID, id));
 		MongoCursor<Document> c = cursor.iterator();
 		if (c.hasNext()) {
 			Document object = c.next();
-//			Map<String, String> documentMap = new ConcurrentHashMap<String, String>();
-//			documentMap.put("id", object.getString("id"));
-//			documentMap.put("score", object.getString("score"));
-//			documentMap.put("name", object.getString("title"));
-//			documentMap.put("content", object.getString("content"));
-//			documentMap.put("url", object.getString("url"));
-//			return new edu.carleton.comp4601.dao.Document(documentMap);
-			return object.getString("url");
+			Map<String, String> documentMap = new ConcurrentHashMap<String, String>();
+			documentMap.put("id", object.getString("id"));
+			documentMap.put("score", object.getString("score"));
+			documentMap.put("name", object.getString("title"));
+			documentMap.put("content", object.getString("content"));
+			documentMap.put("url", object.getString("url"));
+			return new edu.carleton.comp4601.dao.Document(documentMap);
 		} else
 			return null;
 	}
