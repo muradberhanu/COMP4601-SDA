@@ -28,14 +28,23 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 import org.jgrapht.graph.Multigraph;
 
 public class CrawlerController extends CrawlController{
+	
+	static GraphClass graph = new GraphClass();
+//	static MongoClient mongoClient = new MongoClient("localhost", 27017);
+//	static MongoDatabase db = mongoClient.getDatabase("crawler");
+//	static MongoCollection<Document> coll = db.getCollection("crawledSites");
+    //MongoCollection<Document> tikaColl = db.getCollection("tikaCrawling");
+	//static MongoCollection<Document> graphColl = db.getCollection("crawlerGraphs");
 
     public CrawlerController(CrawlConfig config, PageFetcher pageFetcher, RobotstxtServer robotstxtServer)
             throws Exception {
         super(config, pageFetcher, robotstxtServer);
         // TODO Auto-generated constructor stub
     }
+    
+    
 
-    private static String getAllDocuments(MongoCollection<Document> col) {
+     static String getAllDocuments(MongoCollection<Document> col) {
         System.out.println("Fetching all documents from the collection");
         String graphString = null;
         // Performing a read operation on the collection.
@@ -54,7 +63,8 @@ public class CrawlerController extends CrawlController{
         }
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void startCrawl(MongoCollection<Document> coll) throws Exception {
+    	//if(coll.count() == 0) {
         File crawlStorage = new File("crawler4jstorage");
         CrawlConfig config = new CrawlConfig();
         config.setCrawlStorageFolder(crawlStorage.getAbsolutePath());
@@ -75,12 +85,12 @@ public class CrawlerController extends CrawlController{
 
         //CrawlController.WebCrawlerFactory<Crawler> factory = Crawler::new;
         // create graph here
-        GraphClass graph = new GraphClass();
-        MongoClient mongoClient = new MongoClient("localhost", 27017);
-        MongoDatabase db = mongoClient.getDatabase("crawler");
-        MongoCollection<Document> coll = db.getCollection("crawledSites");
-        MongoCollection<Document> tikaColl = db.getCollection("tikaCrawling");
-        MongoCollection<Document> graphColl = db.getCollection("crawlerGraphs");
+//        GraphClass graph = new GraphClass();
+//        MongoClient mongoClient = new MongoClient("localhost", 27017);
+//        MongoDatabase db = mongoClient.getDatabase("crawler");
+//        MongoCollection<Document> coll = db.getCollection("crawledSites");
+//        MongoCollection<Document> tikaColl = db.getCollection("tikaCrawling");
+//        MongoCollection<Document> graphColl = db.getCollection("crawlerGraphs");
 
         //TODO: change ramdirectory to something else
         Directory luceneDirectiory = new RAMDirectory();
@@ -88,8 +98,8 @@ public class CrawlerController extends CrawlController{
         //TODO: these just erase the mongo collections
         BasicDBObject document = new BasicDBObject();
         coll.deleteMany(document);
-        graphColl.deleteMany(document);
-        tikaColl.deleteMany(document);
+        //graphColl.deleteMany(document);
+//        tikaColl.deleteMany(document);
 
         CrawlController.WebCrawlerFactory<Crawler> factory = () -> new Crawler(graph, coll, luceneDirectiory/*tikaColl*/);
         controller.start(factory, numCrawlers);
@@ -97,27 +107,28 @@ public class CrawlerController extends CrawlController{
 
         //System.out.println(graph.getGraph().toString());
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~");
-        for(DefaultEdge e : graph.getGraph().edgeSet()){
-            System.out.println(graph.getGraph().getEdgeSource(e) + " --> " + graph.getGraph().getEdgeTarget(e));
-        }
+//        for(DefaultEdge e : graph.getGraph().edgeSet()){
+//            System.out.println(graph.getGraph().getEdgeSource(e) + " --> " + graph.getGraph().getEdgeTarget(e));
+//        }
 
 
         Document doc = new Document("graph", Marshaller.serializeObject(graph.getGraph()));
         //byte[] serializedGraph = Marshaller.serializeObject(graph);
         //doc.append("graph: ", serializedGraph);
-        if(coll.count(doc)==0) {
-            graphColl.insertOne(doc);
-        }
+//        if(coll.count(doc)==0) {
+//            graphColl.insertOne(doc);
+//        }
         System.out.println("!!!!!!!!!!!!!!!!!!!!!!!");
         getAllDocuments(coll);
         //getAllDocuments(tikaColl);
-        String graphString = getAllDocuments(graphColl);
+        //String graphString = getAllDocuments(graphColl);
         System.out.println("!!!!!!!!!!!!!!!!!!!!!!!");
-        GraphLayoutVisualizer.visualizeGraph(graph.getGraph());
+        //GraphLayoutVisualizer.visualizeGraph(graph.getGraph());
 
 //		Multigraph<Vertex, DefaultEdge> graph2 = (Multigraph<Vertex, DefaultEdge>) Marshaller.deserializeObject(graphString.getBytes());
 //		GraphLayoutVisualizer.visualizeGraph(graph2);
 
-        mongoClient.close();
+        //mongoClient.close();
+    //}
     }
 }

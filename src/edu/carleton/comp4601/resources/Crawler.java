@@ -58,11 +58,12 @@ public class Crawler extends WebCrawler{
         //this.tikaColl = tikaColl;
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public void visit(Page page) {
         String url = page.getWebURL().getURL();
         String parent_url = page.getWebURL().getParentUrl();
-        Document doc = new Document();;
+        Document doc = new Document();
         Integer docid = new Integer(page.getWebURL().getDocid());
 
         g.addVertex(page.getWebURL().getURL());
@@ -71,7 +72,7 @@ public class Crawler extends WebCrawler{
             g.addEdge(page.getWebURL().getURL(), parent_url);
         }
 
-        doc.append("id", docid);
+        doc.append("id", docid.toString());
         doc.append("url", page.getWebURL().getURL());
         ArrayList<String> links = new ArrayList<String>();
         if (page.getParseData() instanceof HtmlParseData) {
@@ -91,6 +92,7 @@ public class Crawler extends WebCrawler{
             text.addAll(document.select("h2"));
             text.addAll(document.select("h3"));
             text.addAll(document.select("h4"));
+            doc.append("title", document.select("title").toString());
             doc.append("text", text.toString());
             doc.append("crawlTime", new Long(crawlTime).toString());
         }
@@ -120,6 +122,7 @@ public class Crawler extends WebCrawler{
             luceneDoc.add(new TextField("Date", doc.get("crawlTime").toString(), Field.Store.YES));
             if(page.getContentType().equals("text/html")) {
                 luceneDoc.add(new TextField("Content", doc.get("text").toString() + doc.get("images").toString(), Field.Store.YES));
+                doc.append("content", doc.get("text").toString() + doc.get("images").toString());
             }
 //            else if(){
 //
@@ -128,11 +131,11 @@ public class Crawler extends WebCrawler{
                 luceneDoc.add(new TextField(name, metadata.get(name), Field.Store.YES));
             }
             indexWriter.addDocument(luceneDoc);
-            indexWriter.commit();
+            indexWriter.close();
 
             //Term term = new Term("DocID", "1");
             //Query query = new TermQuery(term);
-            List<org.apache.lucene.document.Document> results = searchIndex("DocID", "1", doc);
+            List<org.apache.lucene.document.Document> results = searchIndex("DocID", doc.get("id").toString(), doc);
 
             System.out.print("");
         } catch (IOException | org.apache.lucene.queryparser.classic.ParseException e) {
@@ -190,8 +193,8 @@ public class Crawler extends WebCrawler{
         List<org.apache.lucene.document.Document> documents = new ArrayList<>();
         for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
             documents.add(searcher.doc(scoreDoc.doc));
-            doc.append("Score", scoreDoc.score);
         }
+        doc.append("score", Float.toString(topDocs.scoreDocs[0].score));
         return documents;
     }
 

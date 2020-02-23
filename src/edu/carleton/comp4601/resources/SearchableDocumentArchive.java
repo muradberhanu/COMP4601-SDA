@@ -24,9 +24,12 @@ public class SearchableDocumentArchive {
 
     private DocumentCollection documents; //placeholder, will change after merge to get from crawled storage
     private String name;
+    public static DocumentsMongoDb documentsMongoDb;
 
     public SearchableDocumentArchive(){
         name = "COMP4601 Searchable Document Archive: Murad Berhanu and Mustapha Attah";
+        documentsMongoDb = DocumentsMongoDb.getInstance();
+        //documentsMongoDb.coll.db.
     }
 
     @GET
@@ -79,31 +82,31 @@ public class SearchableDocumentArchive {
         return lod;
     }
 
-    //Get a specific document
-    //HTML representation
-    @GET
-    @Path("{id}")
-    @Produces(MediaType.TEXT_HTML)
-    public SDAAction getDocumentHTML(@PathParam("id") String id){
-        return new SDAAction(uriInfo, request, id);
-    }
+//    //Get a specific document
+//    //HTML representation
+//    @GET
+//    @Path("{id}")
+//    @Produces(MediaType.TEXT_HTML)
+//    public SDAAction getDocumentHTML(@PathParam("id") String id){
+//        return new SDAAction(uriInfo, request, id, documentsMongoDb);
+//    }
 
     //XML representation
     @GET
     @Path("{id}")
     @Produces(MediaType.TEXT_XML)
     public SDAAction getDocumentXML(@PathParam("id") String id){
-        return new SDAAction(uriInfo, request, id);
+        return new SDAAction(uriInfo, request, id, documentsMongoDb);
     }
 
-    @DELETE
-    @Path("{id}")
-    public Response deleteDocument (@PathParam("id") int id){
-        if (!(documents.getDocuments().get(id) == null)){  // delete condition to be changed after merge
-            return Response.status(200, "DELETE SUCCESSFUL").build();
-        }
-        return Response.status(404, "DOCUMENT NOT FOUND").build();
-    }
+//    @DELETE
+//    @Path("{id}")
+//    public Response deleteDocument (@PathParam("id") int id){
+//        if (!(documents.getDocuments().get(id) == null)){  // delete condition to be changed after merge
+//            return Response.status(200, "DELETE SUCCESSFUL").build();
+//        }
+//        return Response.status(404, "DOCUMENT NOT FOUND").build();
+//    }
 
 
     /*
@@ -134,6 +137,14 @@ public class SearchableDocumentArchive {
 
         return documentsAsString(docs, tags);
     }
+    
+    @GET
+	@Path("count")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String getCount() {
+		long count = documentsMongoDb.size();
+		return String.valueOf(count);
+	}
 
 
 

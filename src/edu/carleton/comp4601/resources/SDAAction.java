@@ -7,6 +7,10 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.*;
+
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+
 import java.util.ArrayList;
 
 public class SDAAction {
@@ -16,26 +20,52 @@ public class SDAAction {
     @Context
     Request request;
 
-    String id;
+    int id;
     DocumentCollection documents;
+    DocumentsMongoDb documentsMongoDb;
+    
+//    static MongoDatabase db;
+//	static MongoCollection<org.bson.Document> coll;
+//    //MongoCollection<Document> tikaColl = db.getCollection("tikaCrawling");
+//	static MongoCollection<org.bson.Document> graphColl;
 
-    public SDAAction(UriInfo uriInfo, Request request, String id) {
+    
+    public SDAAction(UriInfo uriInfo, Request request, String id, DocumentsMongoDb documentsMongoDb) {
         this.uriInfo = uriInfo;
         this.request = request;
-        this.id = id;
-//        this.documents = documents.;
+        this.id = new Integer(id);
+        this.documentsMongoDb = documentsMongoDb;
     }
 
     @GET
-    @Produces(MediaType.TEXT_HTML)
-    public Document getDocument(){
-        for (Document doc : documents.getDocuments()){
-            if (doc.getId().equals(id)){ //Warning: 'equals()' between objects of inconvertible types 'Integer' and 'String'
-                return doc;
-            }
-        }
-        throw new RuntimeException("Document not found");
+    @Produces(MediaType.TEXT_XML)
+    public String getDocument(){
+//        for (Document doc : documents.getDocuments()){
+//            if (doc.getId().equals(id)){ //Warning: 'equals()' between objects of inconvertible types 'Integer' and 'String'
+//                return doc;
+//            }
+//        }
+//    	Document d = documentsMongoDb.find(id);
+//		if (d == null) {
+//			throw new RuntimeException("No such document: " + id);
+//		}
+//		return d;
+    	return documentsMongoDb.find(id);
+        //throw new RuntimeException("Document not found");
     }
+    
+//    public void initializeMongoDocuments() {
+//    	try {
+//    		CrawlerController controller = null;
+//			controller.startCrawl();
+//			this.db = controller.db;
+//			this.coll = controller.coll;
+//			this.graphColl = controller.graphColl;
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//    }
 
 
 
