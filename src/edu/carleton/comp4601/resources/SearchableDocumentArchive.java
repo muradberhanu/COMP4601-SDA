@@ -13,6 +13,7 @@ import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Path("/sda")
@@ -63,32 +64,32 @@ public class SearchableDocumentArchive {
 
     // retrieves all documents
     //HTML representation
-    @GET
-    @Path("documents")
-    @Produces(MediaType.TEXT_HTML)
-    public List<Document> getAllDocumentsHTML(){
-        List<Document> lod = new ArrayList<Document>();
-        lod.addAll(documents.getDocuments()); //placeholder, will change after merge to get from crawled storage
-        return lod;
-    }
+//    @GET
+//    @Path("documents")
+//    @Produces(MediaType.TEXT_HTML)
+//    public List<Document> getAllDocumentsHTML(){
+//        List<Document> lod = new ArrayList<Document>();
+//        lod.addAll(documents.getDocuments()); //placeholder, will change after merge to get from crawled storage
+//        return lod;
+//    }
 
-    //XML representation
     @GET
-    @Path("documents")
-    @Produces(MediaType.TEXT_XML)
-    public List<Document> getAllDocumentsXML(){
-        List<Document> lod = new ArrayList<Document>();
-        lod.addAll(documents.getDocuments()); //placeholder, will change after merge to get from crawled storage
-        return lod;
-    }
+	@Path("documents")
+	@Produces(MediaType.TEXT_XML)
+	public List<Document> getDocuments() {
+		List<Document> lod = new ArrayList<Document>();
+		lod.addAll(documentsMongoDb.getDocuments().values());
+		return lod;
+	}
 
-//    //Get a specific document
-//    //HTML representation
+    //Get a specific document
+    //HTML representation
 //    @GET
 //    @Path("{id}")
 //    @Produces(MediaType.TEXT_HTML)
-//    public SDAAction getDocumentHTML(@PathParam("id") String id){
-//        return new SDAAction(uriInfo, request, id, documentsMongoDb);
+//    public Document getDocumentHTML(@PathParam("id") String id){
+//    	SDAAction action = new SDAAction(uriInfo, request, id, documentsMongoDb);
+//        return action.getDocumentHtml();
 //    }
 
     //XML representation

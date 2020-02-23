@@ -16,7 +16,7 @@ import com.mongodb.client.result.DeleteResult;
 
 public class DocumentsMongoDb {
 
-	String ID = "DocId";
+	static String ID = "id";
 	static MongoClient mongoClient = new MongoClient("localhost", 27017);
 	static MongoDatabase db = mongoClient.getDatabase("crawler");
 	public static MongoCollection<Document> coll = db.getCollection("crawledSites");
@@ -28,33 +28,33 @@ public class DocumentsMongoDb {
 		MongoCollection<Document> coll = db.getCollection("crawledSites");
 	}
 	
-	private ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document> getDocuments() {
+	public ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> getDocuments() {
 		FindIterable<Document> cursor = coll.find();
-		ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document> map = new ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document>();
+		ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> map = new ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document>();
 		MongoCursor<Document> c = cursor.iterator();
 		while (c.hasNext()) {
 			Document object = c.next();
 			if (object.get(ID) != null) {
-				Map<String, String> documentMap = new ConcurrentHashMap<String, String>();
-				documentMap.put("id", object.getString("id"));
-				documentMap.put("score", object.getString("score"));
+				Map<String, Object> documentMap = new ConcurrentHashMap<String, Object>();
+				documentMap.put("id", Integer.parseInt(object.getString("id")));
+				documentMap.put("score", Float.parseFloat(object.getString("score")));
 				documentMap.put("name", object.getString("title"));
 				documentMap.put("content", object.getString("content"));
 				documentMap.put("url", object.getString("url"));
-				map.put((Integer) object.get(ID), new edu.carleton.comp4601.dao.Document(documentMap));
+				map.put(object.getString(ID), new edu.carleton.comp4601.dao.Document(documentMap));
 			}
 		}
 		return map;
 	}
 	
 	public edu.carleton.comp4601.dao.Document find(int id) {
-		FindIterable<Document> cursor = coll.find(new BasicDBObject(ID, id));
+		FindIterable<Document> cursor = coll.find(new BasicDBObject(ID, Integer.toString(id)));
 		MongoCursor<Document> c = cursor.iterator();
 		if (c.hasNext()) {
 			Document object = c.next();
-			Map<String, String> documentMap = new ConcurrentHashMap<String, String>();
-			documentMap.put("id", object.getString("id"));
-			documentMap.put("score", object.getString("score"));
+			Map<String, Object> documentMap = new ConcurrentHashMap<String, Object>();
+			documentMap.put("id", Integer.parseInt(object.getString("id")));
+			documentMap.put("score", Float.parseFloat(object.getString("score")));
 			documentMap.put("name", object.getString("title"));
 			documentMap.put("content", object.getString("content"));
 			documentMap.put("url", object.getString("url"));
@@ -83,26 +83,40 @@ public class DocumentsMongoDb {
 	}
 	
 	public long size() {
+		
+		FindIterable<Document> fi = coll.find();
+        MongoCursor<Document> cursor = fi.iterator();
+        try {
+            while(cursor.hasNext()) {
+//            	if (cursor.next().containsKey("graph")){
+//            		graphString = cursor.next().get("graph").toString();
+//				}
+                System.out.println(cursor.next().toJson());
+            }
+        } finally {
+            cursor.close();
+        }
 		return coll.count();
 	}
 	
-//	static String getAllDocuments(MongoCollection<Document> col) {
-//        System.out.println("Fetching all documents from the collection");
-//        String graphString = null;
-//        // Performing a read operation on the collection.
-//        FindIterable<Document> fi = col.find();
-//        MongoCursor<Document> cursor = fi.iterator();
-//        try {
-//            while(cursor.hasNext()) {
-////            	if (cursor.next().containsKey("graph")){
-////            		graphString = cursor.next().get("graph").toString();
-////				}
-//                System.out.println(cursor.next().toJson());
-//            }
-//        } finally {
-//            cursor.close();
-//            return graphString;
-//        }
-//    }
+	static ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document> getDocuments(MongoCollection<Document> col) {
+		FindIterable<Document> cursor = coll.find();
+		ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document> map = new ConcurrentHashMap<Integer, edu.carleton.comp4601.dao.Document>();
+		MongoCursor<Document> c = cursor.iterator();
+		while (c.hasNext()) {
+			Document object = c.next();
+			if (object.get(ID) != null) {
+				Map<String, Object> documentMap = new ConcurrentHashMap<String, Object>();
+				documentMap.put("id", Integer.parseInt(object.getString("id")));
+				documentMap.put("score", Float.parseFloat(object.getString("score")));
+				documentMap.put("name", object.getString("title"));
+				documentMap.put("content", object.getString("content"));
+				documentMap.put("url", object.getString("url"));
+				edu.carleton.comp4601.dao.Document document = new edu.carleton.comp4601.dao.Document(documentMap);
+				map.put((Integer) object.get(ID), document);
+			}
+		}
+		return map;
+    }
 	
 }

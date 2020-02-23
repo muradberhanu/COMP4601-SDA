@@ -40,11 +40,6 @@ public class SDAAction {
     @GET
     @Produces(MediaType.TEXT_XML)
     public Document getDocument(){
-//        for (Document doc : documents.getDocuments()){
-//            if (doc.getId().equals(id)){ //Warning: 'equals()' between objects of inconvertible types 'Integer' and 'String'
-//                return doc;
-//            }
-//        }
     	Document d = documentsMongoDb.find(id);
 		if (d == null) {
 			throw new RuntimeException("No such document: " + id);
@@ -52,6 +47,28 @@ public class SDAAction {
 		return d;
         //throw new RuntimeException("Document not found");
     }
+    
+    @GET
+    @Produces(MediaType.TEXT_XML)
+    public Document getAllDocuments(){
+    	Document d = documentsMongoDb.find(id);
+		if (d == null) {
+			throw new RuntimeException("No such document: " + id);
+		}
+		return d;
+        //throw new RuntimeException("Document not found");
+    }
+    
+//    @GET
+//    @Produces(MediaType.TEXT_HTML)
+//    public Document getDocumentHtml(){
+//    	Document d = documentsMongoDb.find(id);
+//		if (d == null) {
+//			throw new RuntimeException("No such document: " + id);
+//		}
+//		return d;
+//        //throw new RuntimeException("Document not found");
+//    }
     
 //    public void initializeMongoDocuments() {
 //    	try {
