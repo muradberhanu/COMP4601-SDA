@@ -172,7 +172,7 @@ public class SearchableDocumentArchive {
     	if(!documentsMongoDb.getMongoDocument(Integer.parseInt(id)).get("metadata").toString().equals("")) {
     		documentHTML+="<br> metadata: "+documentsMongoDb.getMongoDocument(Integer.parseInt(id)).get("metadata").toString();
     	}
-    	CrawlerController.getAllDocuments(documentsMongoDb.coll);
+    	//CrawlerController.getAllDocuments(documentsMongoDb.coll);
         return documentHTML;
     }
 
@@ -219,27 +219,50 @@ public class SearchableDocumentArchive {
     	htmlString += "</table>";
     	return htmlString;
 	}
+    
+    @GET
+	@Path("pagerank")
+	@Produces(MediaType.TEXT_XML)
+	public String getPageranksXml() {
+    	String htmlString = "<table style=\"border: 1px solid black;\">";
+    	for(Document doc: documents.getDocuments()) {
+    		htmlString += "<tr><td style=\"border: 1px solid black;\">" + doc.getUrl() + "</td><td style=\"border: 1px solid black;\">" + doc.getScore().toString() + "</td></tr>";
+    	}
+    	htmlString += "</table>";
+    	return htmlString;
+	}
 
     /*
     TODO
-    */
+//    */
     @GET
     @Path("search/{tags}")
     @Produces(MediaType.TEXT_HTML)
-    public String searchDaTin(@PathParam("tags") String tags) throws SearchException, IOException, ClassNotFoundException {
+    public String searchTagsHtml(@PathParam("tags") String tags) throws SearchException, IOException, ClassNotFoundException {
 
-        ArrayList<Document> docs = new ArrayList<Document>();
+    	ArrayList<Document> docs = new ArrayList<Document>();
+        SearchServiceManager.getInstance().start();
         SearchResult searchResult = SearchServiceManager.getInstance().search(tags);
 
-        //perform local search for doc with local storage class
+        String[] splitTags = tags.split("\\+");
+        for (Document doc: documents.getDocuments()) {
+        	boolean check = false;
+        	for(String tag: splitTags) {
+        		check = false;
+	        	if(doc.getContent().contains(tag)) {
+	        		check = true;
+	        	}
+        	}
+        	if(check == true) {
+        		docs.add(doc);
+        	}
+        }
 
         try {
             searchResult.await(SDAConstants.TIMEOUT, TimeUnit.SECONDS);
 
         } catch (InterruptedException e){
             e.printStackTrace();
-            Response.status(500, "").build();
-            return "No Document Found";
         } finally {
             SearchServiceManager.getInstance().reset();
         }
@@ -247,6 +270,42 @@ public class SearchableDocumentArchive {
         docs.addAll(searchResult.getDocs());
 
         return documentsAsString(docs, tags);
+    }
+    @GET
+    @Path("search/{tags}")
+    @Produces(MediaType.TEXT_XML)
+    public ArrayList<Document> searchTagsXml(@PathParam("tags") String tags) throws SearchException, IOException, ClassNotFoundException {
+
+        ArrayList<Document> docs = new ArrayList<Document>();
+        SearchServiceManager.getInstance().start();
+        SearchResult searchResult = SearchServiceManager.getInstance().search(tags);
+
+        String[] splitTags = tags.split("\\+");
+        for (Document doc: documents.getDocuments()) {
+        	boolean check = false;
+        	for(String tag: splitTags) {
+        		check = false;
+	        	if(doc.getContent().contains(tag)) {
+	        		check = true;
+	        	}
+        	}
+        	if(check == true) {
+        		docs.add(doc);
+        	}
+        }
+
+        try {
+            searchResult.await(SDAConstants.TIMEOUT, TimeUnit.SECONDS);
+
+        } catch (InterruptedException e){
+            e.printStackTrace();
+        } finally {
+            SearchServiceManager.getInstance().reset();
+        }
+
+        docs.addAll(searchResult.getDocs());
+
+        return docs;
     }
     
     @GET
@@ -261,8 +320,12 @@ public class SearchableDocumentArchive {
 
     public String documentsAsString (ArrayList<Document> documents, String tags){
         //TODO
-
-        return null;
+    	String htmlString = "<h1>"+tags+"</h1><table style=\"border: 1px solid black;\">";
+    	for(Document doc: documents) {
+    		htmlString += "<tr><td style=\"border: 1px solid black;\">" + "<a href=" + doc.getUrl() +">" + doc.getUrl() + "</a>"+ "</td><td style=\"border: 1px solid black;\">" + doc.getScore().toString() + "</td></tr>";
+    	}
+    	htmlString += "</table>";
+        return htmlString;
     }
 
 
