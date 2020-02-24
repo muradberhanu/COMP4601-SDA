@@ -14,4 +14,7 @@
         <servlet-name>COMP4601 SDA Murad Berhanu and Mustapha Attah</servlet-name>
         <url-pattern>/rest/*</url-pattern>
     </servlet-mapping>
+    <error-page>
+        <location>/WEB-INF/general-error.html</location>
+    </error-page>
 </web-app>

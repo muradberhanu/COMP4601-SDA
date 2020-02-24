@@ -50,7 +50,7 @@ public class Crawler extends WebCrawler{
     private long crawlTime;
     Directory memoryIndex;
 
-    public Crawler(GraphClass graph, MongoCollection<Document> coll, Directory memoryIndex /*MongoCollection<Document> tikaColl*/) {
+    public Crawler(GraphClass graph, MongoCollection<Document> coll /*MongoCollection<Document> tikaColl*/) {
         this.graph = graph;
         g = graph.getGraph();
         this.coll = coll;
@@ -92,10 +92,10 @@ public class Crawler extends WebCrawler{
             text.addAll(document.select("h2"));
             text.addAll(document.select("h3"));
             text.addAll(document.select("h4"));
-            doc.append("title", document.select("title").toString());
             doc.append("text", text.toString());
+            doc.append("title", document.title());
             doc.append("crawlTime", new Long(crawlTime).toString());
-            //doc.append("score", "0"); //default score to fix error
+            
         }
         Metadata metadata = new Metadata();
         try {
@@ -112,22 +112,18 @@ public class Crawler extends WebCrawler{
         }
 
         try {
-            //emoryIndex = new RAMDirectory();
+            memoryIndex = new RAMDirectory();
             StandardAnalyzer analyzer = new StandardAnalyzer();
             IndexWriterConfig indexWriterConfig = new IndexWriterConfig(analyzer);
             IndexWriter indexWriter = new IndexWriter(memoryIndex, indexWriterConfig);
             org.apache.lucene.document.Document luceneDoc = new org.apache.lucene.document.Document();
-            luceneDoc.add(new TextField("DocID", doc.get("id").toString(), Field.Store.YES));
-            luceneDoc.add(new TextField("URL", doc.get("url").toString(), Field.Store.YES));
-            //luceneDoc.add(new TextField("IndexedBy", , Field.Store.YES));
+            luceneDoc.add(new TextField("docId", doc.get("id").toString(), Field.Store.YES));
+            luceneDoc.add(new TextField("url", doc.get("url").toString(), Field.Store.YES));
             luceneDoc.add(new TextField("Date", doc.get("crawlTime").toString(), Field.Store.YES));
-            if(page.getContentType().equals("text/html")) {
-                luceneDoc.add(new TextField("Content", doc.get("text").toString() + doc.get("images").toString(), Field.Store.YES));
-                doc.append("content", doc.get("text").toString() + doc.get("images").toString());
-            }
-//            else if(){
-//
-//            }
+            luceneDoc.add(new TextField("content", doc.get("text").toString() + doc.get("images").toString(), Field.Store.YES));
+            doc.append("content", doc.get("text").toString() + doc.get("images").toString());
+            luceneDoc.add(new TextField("i", "Murad Berhanu and Mustapha Attah", Field.Store.YES));
+                
             for(String name: metadata.names()){
                 luceneDoc.add(new TextField(name, metadata.get(name), Field.Store.YES));
             }
@@ -136,7 +132,7 @@ public class Crawler extends WebCrawler{
 
             //Term term = new Term("DocID", "1");
             //Query query = new TermQuery(term);
-            List<org.apache.lucene.document.Document> results = searchIndex("DocID", doc.get("id").toString(), memoryIndex);
+            List<org.apache.lucene.document.Document> results = searchIndex("docId", doc.get("id").toString(), doc);
 
             System.out.print("");
         } catch (IOException | org.apache.lucene.queryparser.classic.ParseException e) {
@@ -154,7 +150,8 @@ public class Crawler extends WebCrawler{
         crawlTime = System.currentTimeMillis();
         String urlString = url.getURL().toLowerCase();
         return urlString.startsWith("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/") ||
-        		urlString.startsWith("https://sikaman.dyndns.org/courses/4601/");
+        		urlString.startsWith("https://sikaman.dyndns.org/courses/4601/") ||
+        		urlString.startsWith("https://www.bbc.com/sport");
     }
 
     public void parseTika(Page page , Document document, Metadata metadata) throws TikaException, SAXException, IOException, ParseException {
@@ -171,10 +168,12 @@ public class Crawler extends WebCrawler{
 		Map<String,Object> mongoMetadata = new HashMap<String, Object>();
 		for (int i = 0; i < metadata.names().length; i++) {
 			String item = metadata.names()[i];
-			if(metadata.isMultiValued(item))
+			if(metadata.isMultiValued(item)) {
 				mongoMetadata.put(item, Arrays.asList(metadata.getValues(item)));
-			else
+			}
+			else {
 				mongoMetadata.put(item, metadata.get(item));
+			}
 		}
         //org.bson.Document document = new org.bson.Document();//("links",page..toString());
         document.append("metadata", new Document(mongoMetadata));
@@ -185,7 +184,7 @@ public class Crawler extends WebCrawler{
 //        System.out.println("title:"+metadata.get(DublinCore.TITLE));
 
     }
-    public List<org.apache.lucene.document.Document> searchIndex(String inField, String queryString, Directory memoryIndex) throws org.apache.lucene.queryparser.classic.ParseException, IOException {
+    public List<org.apache.lucene.document.Document> searchIndex(String inField, String queryString, Document doc) throws org.apache.lucene.queryparser.classic.ParseException, IOException {
         Query query = new QueryParser(inField, new StandardAnalyzer())
                 .parse(queryString);
         IndexReader indexReader = DirectoryReader.open(memoryIndex);
@@ -195,7 +194,7 @@ public class Crawler extends WebCrawler{
         for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
             documents.add(searcher.doc(scoreDoc.doc));
         }
-        //doc.append("score", Float.toString(topDocs.scoreDocs[0].score));
+        doc.append("score", Float.toString(topDocs.scoreDocs[0].score));
         return documents;
     }
 

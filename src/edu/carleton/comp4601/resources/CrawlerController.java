@@ -42,11 +42,6 @@ import org.jgrapht.graph.Multigraph;
 public class CrawlerController extends CrawlController{
 	
 	static GraphClass graph = new GraphClass();
-//	static MongoClient mongoClient = new MongoClient("localhost", 27017);
-//	static MongoDatabase db = mongoClient.getDatabase("crawler");
-//	static MongoCollection<Document> coll = db.getCollection("crawledSites");
-    //MongoCollection<Document> tikaColl = db.getCollection("tikaCrawling");
-	//static MongoCollection<Document> graphColl = db.getCollection("crawlerGraphs");
 
     public CrawlerController(CrawlConfig config, PageFetcher pageFetcher, RobotstxtServer robotstxtServer)
             throws Exception {
@@ -82,7 +77,7 @@ public class CrawlerController extends CrawlController{
         config.setCrawlStorageFolder(crawlStorage.getAbsolutePath());
         config.setIncludeBinaryContentInCrawling(true);
         config.setPolitenessDelay(10);
-        config.setMaxDepthOfCrawling(1);
+        //config.setMaxDepthOfCrawling(1);
         //config.setMaxPagesToFetch(30);
 
         int numCrawlers = 1;
@@ -95,64 +90,8 @@ public class CrawlerController extends CrawlController{
         //controller.addSeed("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/handouts/");
         controller.addSeed("https://sikaman.dyndns.org/courses/4601/resources/N-0.html");
 
-        //CrawlController.WebCrawlerFactory<Crawler> factory = Crawler::new;
-        // create graph here
-//        GraphClass graph = new GraphClass();
-//        MongoClient mongoClient = new MongoClient("localhost", 27017);
-//        MongoDatabase db = mongoClient.getDatabase("crawler");
-//        MongoCollection<Document> coll = db.getCollection("crawledSites");
-//        MongoCollection<Document> tikaColl = db.getCollection("tikaCrawling");
-//        MongoCollection<Document> graphColl = db.getCollection("crawlerGraphs");
-
-        //TODO: change ramdirectory to something else
-        Directory luceneDirectory = new RAMDirectory();
-
-        //TODO: these just erase the mongo collections
-        //BasicDBObject document = new BasicDBObject();
-       // coll.deleteMany(document);
-        //graphColl.deleteMany(document);
-//        tikaColl.deleteMany(document);
-
-        CrawlController.WebCrawlerFactory<Crawler> factory = () -> new Crawler(graph, coll, luceneDirectory/*tikaColl*/);
+        CrawlController.WebCrawlerFactory<Crawler> factory = () -> new Crawler(graph, coll/*tikaColl*/);
         controller.start(factory, numCrawlers);
-        
-        //loop over all documents to fix pagerank scores
-        System.out.println("Setting all pageranks in the collection");
-        // Performing a read operation on the collection.
-        FindIterable<Document> fi = coll.find();
-        MongoCursor<Document> cursor = fi.iterator();
-        try {
-            while(cursor.hasNext()) {
-//            	if (cursor.next().containsKey("graph")){
-//            		graphString = cursor.next().get("graph").toString();
-//				}
-//            	luceneDirectory.
-//                System.out.println(cursor.next().toJson());
-            	//cursor.
-            	//Crawler.searchIndex(inField,  queryString,  luceneDirectory);
-            	Document object = cursor.next();
-            	String inField = "DocID";
-            	String queryString = object.getString("id");
-            	
-            	Query query = new QueryParser(inField, new StandardAnalyzer())
-                        .parse(queryString);
-                IndexReader indexReader = DirectoryReader.open(luceneDirectory);
-                IndexSearcher searcher = new IndexSearcher(indexReader);
-                TopDocs topDocs = searcher.search(query, 1000);
-                List<org.apache.lucene.document.Document> documents = new ArrayList<>();
-                for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                    documents.add(searcher.doc(scoreDoc.doc));
-                }
-                Document newDocument = object;
-                newDocument.append("score", Float.toString(topDocs.scoreDocs[0].score));
-
-                coll.findOneAndReplace(Filters.eq("id", object.getString("id")), newDocument);
-                System.out.println();
-            }
-        } finally {
-            cursor.close();
-        }
-        
         
         //FindIterable<Document> iterable = db.getCollection("crawledSites").find();
 

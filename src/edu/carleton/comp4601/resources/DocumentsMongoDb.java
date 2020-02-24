@@ -35,7 +35,8 @@ public class DocumentsMongoDb {
 	
 	public ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> getDocuments() {
 		
-		if(coll.count()==0) {
+		long collectionSize = coll.count();
+		if(collectionSize==0) {
 			BasicDBObject document = new BasicDBObject();
 	    	coll.deleteMany(document);
 			try {

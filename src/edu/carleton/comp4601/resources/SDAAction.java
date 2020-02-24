@@ -23,11 +23,6 @@ public class SDAAction {
     int id;
     DocumentCollection documents;
     DocumentsMongoDb documentsMongoDb;
-    
-//    static MongoDatabase db;
-//	static MongoCollection<org.bson.Document> coll;
-//    //MongoCollection<Document> tikaColl = db.getCollection("tikaCrawling");
-//	static MongoCollection<org.bson.Document> graphColl;
 
     
     public SDAAction(UriInfo uriInfo, Request request, String id, DocumentsMongoDb documentsMongoDb) {
@@ -35,6 +30,14 @@ public class SDAAction {
         this.request = request;
         this.id = new Integer(id);
         this.documentsMongoDb = documentsMongoDb;
+    }
+    
+    public SDAAction(UriInfo uriInfo, Request request, String id, DocumentsMongoDb documentsMongoDb, DocumentCollection documents) {
+        this.uriInfo = uriInfo;
+        this.request = request;
+        this.id = new Integer(id);
+        this.documentsMongoDb = documentsMongoDb;
+        this.documents = documents;
     }
 
     @GET
@@ -45,13 +48,19 @@ public class SDAAction {
 			throw new RuntimeException("No such document: " + id);
 		}
 		return d;
-        //throw new RuntimeException("Document not found");
     }
     
     @DELETE
 	public void deleteDocument() {
 		if (!documentsMongoDb.deleteDocument(Integer.toString(id)))
 			throw new RuntimeException("Account " + id + " not found");
+		else {
+			for(Document doc: documents.getDocuments()) {
+				if(doc.getId() == id) {
+					documents.getDocuments().remove(doc);
+				}
+			}
+		}
 	}
     
     @GET
@@ -64,31 +73,6 @@ public class SDAAction {
 		return d;
         //throw new RuntimeException("Document not found");
     }
-    
-//    @GET
-//    @Produces(MediaType.TEXT_HTML)
-//    public Document getDocumentHtml(){
-//    	Document d = documentsMongoDb.find(id);
-//		if (d == null) {
-//			throw new RuntimeException("No such document: " + id);
-//		}
-//		return d;
-//        //throw new RuntimeException("Document not found");
-//    }
-    
-//    public void initializeMongoDocuments() {
-//    	try {
-//    		CrawlerController controller = null;
-//			controller.startCrawl();
-//			this.db = controller.db;
-//			this.coll = controller.coll;
-//			this.graphColl = controller.graphColl;
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//    }
-
 
 
 }

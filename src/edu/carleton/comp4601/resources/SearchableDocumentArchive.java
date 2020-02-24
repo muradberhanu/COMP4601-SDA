@@ -1,6 +1,5 @@
 package edu.carleton.comp4601.resources;
 
-//import com.sun.tools.corba.se.idl.PragmaEntry;
 import edu.carleton.comp4601.dao.Document;
 import edu.carleton.comp4601.dao.DocumentCollection;
 import edu.carleton.comp4601.utility.SDAConstants;
@@ -12,6 +11,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.client.model.Filters;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,18 +30,23 @@ public class SearchableDocumentArchive {
     private DocumentCollection documents = new DocumentCollection(); //placeholder, will change after merge to get from crawled storage
     private String name;
     public static DocumentsMongoDb documentsMongoDb;
+    
 
     public SearchableDocumentArchive(){
         name = "COMP4601 Searchable Document Archive: Murad Berhanu and Mustapha Attah";
         documentsMongoDb = DocumentsMongoDb.getInstance();
-        ArrayList<edu.carleton.comp4601.dao.Document> documentsList = new ArrayList<edu.carleton.comp4601.dao.Document>();
-        ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> documentMap = documentsMongoDb.getDocuments();
-		for (edu.carleton.comp4601.dao.Document e : documentMap.values()) {
-		    documentsList.add(e);
-		}
-		if(documentMap!=null) {
-			documents.setDocuments(documentsList);
-		}
+        
+        if(documents.getDocuments()==null) {
+	    	ArrayList<edu.carleton.comp4601.dao.Document> documentsList = new ArrayList<edu.carleton.comp4601.dao.Document>();
+	        ConcurrentHashMap<String, edu.carleton.comp4601.dao.Document> documentMap = documentsMongoDb.getDocuments();
+			for (edu.carleton.comp4601.dao.Document e : documentMap.values()) {
+			    documentsList.add(e);
+			}
+			if(documentMap!=null) {
+				documents.setDocuments(documentsList);
+			}
+    	}
+        
         //documentsMongoDb.coll.db.
     }
 
@@ -74,21 +79,14 @@ public class SearchableDocumentArchive {
     }
 
 
-    // retrieves all documents
-    //HTML representation
-//    @GET
-//    @Path("documents")
-//    @Produces(MediaType.TEXT_HTML)
-//    public List<Document> getAllDocumentsHTML(){
-//        List<Document> lod = new ArrayList<Document>();
-//        lod.addAll(documents.getDocuments()); //placeholder, will change after merge to get from crawled storage
-//        return lod;
-//    }
 
     @GET
 	@Path("documents")
 	@Produces(MediaType.TEXT_HTML)
 	public String getDocumentsHTML() {
+    	
+    	
+    	
 		List<Document> lod = new ArrayList<Document>();
 		lod.addAll(documentsMongoDb.getDocuments().values());
 		String htmlString = "";
@@ -116,6 +114,7 @@ public class SearchableDocumentArchive {
 	@Path("documents")
 	@Produces(MediaType.TEXT_XML)
 	public DocumentCollection getDocuments() {
+    	
 		return documents;
 	}
     
@@ -185,25 +184,59 @@ public class SearchableDocumentArchive {
         return action.getDocument();
     }
 
-//    @DELETE
-//    @Path("{id}")
-//    public Response deleteDocument (@PathParam("id") String id){
-//    	SDAAction action = new SDAAction(uriInfo, request, id, documentsMongoDb);
-//        return action.deleteDocument();
-//        if (!(documents.getDocuments().get(id) == null)){  // delete condition to be changed after merge
-//            return Response.status(200, "DELETE SUCCESSFUL").build();
-//        }
-//        return Response.status(404, "DOCUMENT NOT FOUND").build();
-//    }
+    @DELETE
+    @Path("{id}")
+    public Response deleteDocument (@PathParam("id") String id){
+    	SDAAction action = new SDAAction(uriInfo, request, id, documentsMongoDb, documents);
+        action.deleteDocument();
+        if (!(documents.getDocuments().get(Integer.parseInt(id)) == null)){  // delete condition to be changed after merge
+            return Response.status(200, "DELETE SUCCESSFUL").build();
+        }
+        return Response.status(404, "DOCUMENT NOT FOUND").build();
+    }
+    
+  @GET
+  @Path("delete/{tags}")
+  @Produces(MediaType.TEXT_XML)
+  public Response deleteDocuments (@PathParam("tags") String tags){
+	  ArrayList<Document> docs = new ArrayList<Document>();
+	  int count = 0;
+      String[] splitTags = tags.split("\\+");
+      for (Document doc: documents.getDocuments()) {
+      	boolean check = false;
+      	for(String tag: splitTags) {
+      		check = false;
+	        	if(doc.getContent().contains(tag)) {
+	        		check = true;
+	        	}
+      	}
+      	if(check == true) {
+      		documentsMongoDb.coll.deleteOne(Filters.eq("id",doc.getId().toString()));
+      		docs.remove(doc);
+      		count++;
+      	}
+      }
+      
+      if(count>1) {
+    	  System.out.println("200 response");
+    	  return Response.status(204, "Multiple documents deleted with tags " + tags).build();
+      }
+      System.out.println("204 response");
+      return Response.status(204, "One document deleted with tags " + tags).build();
+      
+  }
 
     @GET
     @Path("reset")
     @Produces(MediaType.TEXT_HTML)
     public String reset() {
     	BasicDBObject document = new BasicDBObject();
-    	documentsMongoDb.coll.deleteMany(document);
-    	documents.setDocuments(null);
-    	documentsMongoDb = null;
+    	if(this.documentsMongoDb.getInstance()!=null) {
+    		documentsMongoDb.coll.deleteMany(document);
+        	documents.setDocuments(null);
+        	documentsMongoDb = null;
+    	}
+    	
     	return "successful reset";
     	
     }
@@ -214,7 +247,7 @@ public class SearchableDocumentArchive {
 	public String getPageranks() {
     	String htmlString = "<table style=\"border: 1px solid black;\">";
     	for(Document doc: documents.getDocuments()) {
-    		htmlString += "<tr><td style=\"border: 1px solid black;\">" + doc.getUrl() + "</td><td style=\"border: 1px solid black;\">" + doc.getScore().toString() + "</td></tr>";
+    		htmlString += "<tr><td style=\"border: 1px solid black;\">" + doc.getName() + "</td><td style=\"border: 1px solid black;\">" + doc.getScore().toString() + "</td></tr>";
     	}
     	htmlString += "</table>";
     	return htmlString;
@@ -226,7 +259,7 @@ public class SearchableDocumentArchive {
 	public String getPageranksXml() {
     	String htmlString = "<table style=\"border: 1px solid black;\">";
     	for(Document doc: documents.getDocuments()) {
-    		htmlString += "<tr><td style=\"border: 1px solid black;\">" + doc.getUrl() + "</td><td style=\"border: 1px solid black;\">" + doc.getScore().toString() + "</td></tr>";
+    		htmlString += "<tr><td style=\"border: 1px solid black;\">" + doc.getName() + "</td><td style=\"border: 1px solid black;\">" + doc.getScore().toString() + "</td></tr>";
     	}
     	htmlString += "</table>";
     	return htmlString;
@@ -268,6 +301,8 @@ public class SearchableDocumentArchive {
         }
 
         docs.addAll(searchResult.getDocs());
+        
+        //SearchServiceManager.getInstance().stop();
 
         return documentsAsString(docs, tags);
     }
@@ -304,8 +339,62 @@ public class SearchableDocumentArchive {
         }
 
         docs.addAll(searchResult.getDocs());
+        
+        //SearchServiceManager.getInstance().stop();
 
         return docs;
+    }
+    
+    @GET
+    @Path("query/{tags}")
+    @Produces(MediaType.APPLICATION_XML)
+    public DocumentCollection queryAsXML(@PathParam("tags") String tags) {
+    	DocumentCollection dc = new DocumentCollection();
+        ArrayList<Document> docs = new ArrayList<Document>();
+
+        String[] splitTags = tags.split("\\+");
+        for (Document doc: documents.getDocuments()) {
+        	boolean check = false;
+        	for(String tag: splitTags) {
+        		check = false;
+	        	if(doc.getContent().contains(tag)) {
+	        		check = true;
+	        	}
+        	}
+        	if(check == true) {
+        		docs.add(doc);
+        	}
+        }
+
+        dc.setDocuments(docs);
+
+        return dc;
+    }
+    
+    @GET
+    @Path("query/{tags}")
+    @Produces(MediaType.TEXT_HTML)
+    public String queryAsHTML(@PathParam("tags") String tags) {
+    	DocumentCollection dc = new DocumentCollection();
+        ArrayList<Document> docs = new ArrayList<Document>();
+
+        String[] splitTags = tags.split("\\+");
+        for (Document doc: documents.getDocuments()) {
+        	boolean check = false;
+        	for(String tag: splitTags) {
+        		check = false;
+	        	if(doc.getContent().contains(tag)) {
+	        		check = true;
+	        	}
+        	}
+        	if(check == true) {
+        		docs.add(doc);
+        	}
+        }
+
+        dc.setDocuments(docs);
+
+        return documentsAsString(dc.getDocuments(), tags);
     }
     
     @GET
@@ -322,7 +411,7 @@ public class SearchableDocumentArchive {
         //TODO
     	String htmlString = "<h1>"+tags+"</h1><table style=\"border: 1px solid black;\">";
     	for(Document doc: documents) {
-    		htmlString += "<tr><td style=\"border: 1px solid black;\">" + "<a href=" + doc.getUrl() +">" + doc.getUrl() + "</a>"+ "</td><td style=\"border: 1px solid black;\">" + doc.getScore().toString() + "</td></tr>";
+    		htmlString += "<tr><td style=\"border: 1px solid black;\">" + "<a href=" + doc.getUrl() +">" + doc.getName() + "</a>"+ "</td><td style=\"border: 1px solid black;\">" + doc.getScore().toString() + "</td></tr>";
     	}
     	htmlString += "</table>";
         return htmlString;
