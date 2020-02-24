@@ -78,7 +78,7 @@ public class CrawlerController extends CrawlController{
         config.setIncludeBinaryContentInCrawling(true);
         config.setPolitenessDelay(10);
         //config.setMaxDepthOfCrawling(1);
-        //config.setMaxPagesToFetch(30);
+        config.setMaxPagesToFetch(1000);
 
         int numCrawlers = 1;
 
