@@ -78,7 +78,7 @@ public class CrawlerController extends CrawlController{
         config.setIncludeBinaryContentInCrawling(true);
         config.setPolitenessDelay(10);
         //config.setMaxDepthOfCrawling(1);
-        config.setMaxPagesToFetch(1000);
+        config.setMaxPagesToFetch(2000);
 
         int numCrawlers = 1;
 
@@ -86,9 +86,9 @@ public class CrawlerController extends CrawlController{
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
         RobotstxtServer robotstxtServer= new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
-        //controller.addSeed("https://www.bbc.com/sport/boxing/51497816");
-        //controller.addSeed("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/handouts/");
         controller.addSeed("https://sikaman.dyndns.org/courses/4601/resources/N-0.html");
+        controller.addSeed("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/handouts/");
+        controller.addSeed("https://www.bbc.com/sport/boxing/51497816");
 
         CrawlController.WebCrawlerFactory<Crawler> factory = () -> new Crawler(graph, coll/*tikaColl*/);
         controller.start(factory, numCrawlers);
