@@ -88,7 +88,7 @@ public class CrawlerController extends CrawlController{
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
         controller.addSeed("https://sikaman.dyndns.org/courses/4601/resources/N-0.html");
         controller.addSeed("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/handouts/");
-        controller.addSeed("https://www.bbc.com/sport/boxing/51497816");
+        controller.addSeed("https://www.crawler-test.com");
 
         CrawlController.WebCrawlerFactory<Crawler> factory = () -> new Crawler(graph, coll/*tikaColl*/);
         controller.start(factory, numCrawlers);

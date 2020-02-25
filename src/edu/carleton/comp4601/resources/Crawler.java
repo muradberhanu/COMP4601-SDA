@@ -2,6 +2,7 @@ package edu.carleton.comp4601.resources;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.text.ParseException;
 import java.util.*;
 
@@ -151,20 +152,23 @@ public class Crawler extends WebCrawler{
         String urlString = url.getURL().toLowerCase();
         return urlString.startsWith("https://sikaman.dyndns.org:8443/WebSite/rest/site/courses/4601/") ||
         		urlString.startsWith("https://sikaman.dyndns.org/courses/4601/") ||
-        		urlString.startsWith("https://www.bbc.com/sport");
+        		urlString.startsWith("https://sikaman.dyndns.org:8443/") ||
+        		urlString.startsWith("https://www.crawler-test.com/description_tags");
     }
 
     public void parseTika(Page page , Document document, Metadata metadata) throws TikaException, SAXException, IOException, ParseException {
         Tika tika = new Tika();
-        //Metadata metadata = new Metadata();
-        InputStream input = null;
-        input = TikaInputStream.get(page.getWebURL().getURL().getBytes(), metadata);
-        //org.xml.sax.ContentHandler textHandler = new BodyContentHandler(-1);
-        ContentHandler handler = new BodyContentHandler();
-        ParseContext context = new ParseContext();
-        Parser parser = new AutoDetectParser();
-        parser.parse(input, handler, metadata, context);
-        //System.out.println("MimeType type =" + page.getContentType());
+		InputStream input = null;
+		StringWriter writer = new StringWriter();
+		input = TikaInputStream.get(page.getContentData(), metadata);
+		BodyContentHandler handler = new BodyContentHandler(writer);
+		ParseContext context = new ParseContext();
+		Parser parser = new AutoDetectParser();
+		parser.parse(input, handler, metadata, context);
+		System.out.println("MimeType type =" + page.getContentType());
+		//System.out.println("Content  =" + handler.toString());
+		//System.out.println(writer.toString());
+
 		Map<String,Object> mongoMetadata = new HashMap<String, Object>();
 		for (int i = 0; i < metadata.names().length; i++) {
 			String item = metadata.names()[i];

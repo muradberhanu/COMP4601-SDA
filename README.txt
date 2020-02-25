@@ -20,4 +20,3 @@ everything works in browser except delete single document (localhost:8080/COMP46
 
 we were unable to accurately calculate lucene document scores, but boost and noboost still work with these values
 
-to check different URLS to crawl (one of them works by default), first go to reset page and then in CrawlerController.java, the links are on line 89, 90, and 91. comment out/uncomment the link you want to try then go to localhost:8080/COMP4601-SDA/rest/sda to restart
